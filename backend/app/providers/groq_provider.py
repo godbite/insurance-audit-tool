@@ -92,9 +92,9 @@ class GroqProvider(ExtractionProvider):
                     in_t = response.usage.prompt_tokens
                     out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage.total_tokens
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage.total_tokens
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)
@@ -170,9 +170,9 @@ class GroqProvider(ExtractionProvider):
                     in_t = response.usage.prompt_tokens
                     out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage.total_tokens
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage.total_tokens
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)
@@ -263,9 +263,9 @@ class GroqProvider(ExtractionProvider):
                     in_t = response.usage.prompt_tokens
                     out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage.total_tokens
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage.total_tokens
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)

@@ -155,9 +155,9 @@ class GeminiProvider:
                     in_t = response.usage_metadata.prompt_token_count
                     out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage_metadata.total_token_count
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage_metadata.total_token_count
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)
@@ -250,9 +250,9 @@ class GeminiProvider:
                     in_t = response.usage_metadata.prompt_token_count
                     out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage_metadata.total_token_count
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage_metadata.total_token_count
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)
@@ -309,9 +309,9 @@ class GeminiProvider:
                     in_t = response.usage_metadata.prompt_token_count
                     out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": in_t,
-                        "output_tokens": out_t,
-                        "total_tokens": response.usage_metadata.total_token_count
+                        "input": in_t,
+                        "output": out_t,
+                        "total": response.usage_metadata.total_token_count
                     }
                     from app.providers.base import calculate_cost
                     costs = calculate_cost(self._model_name, in_t, out_t)
