@@ -21,7 +21,13 @@ def get_ocr():
             from paddleocr import PaddleOCR
             # Suppress excessive logging from PaddleOCR
             logging.getLogger("ppocr").setLevel(logging.WARNING)
-            _ocr_instance = PaddleOCR(use_textline_orientation=False, lang='en', enable_mkldnn=False)
+            _ocr_instance = PaddleOCR(
+                lang='en',
+                use_doc_orientation_classify=False,
+                use_doc_unwarping=False,
+                use_textline_orientation=False,
+                enable_mkldnn=False
+            )
             log.info("PaddleOCR successfully initialized.")
         except Exception as e:
             log.error(f"Failed to initialize PaddleOCR: {e}", exc_info=True)
