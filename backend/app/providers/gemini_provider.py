@@ -150,15 +150,21 @@ class GeminiProvider:
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    in_t = response.usage_metadata.prompt_token_count
+                    out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": response.usage_metadata.prompt_token_count,
-                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage_metadata.total_token_count
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -239,15 +245,21 @@ class GeminiProvider:
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    in_t = response.usage_metadata.prompt_token_count
+                    out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": response.usage_metadata.prompt_token_count,
-                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage_metadata.total_token_count
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -292,15 +304,21 @@ class GeminiProvider:
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    in_t = response.usage_metadata.prompt_token_count
+                    out_t = response.usage_metadata.candidates_token_count
                     usage = {
-                        "input_tokens": response.usage_metadata.prompt_token_count,
-                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage_metadata.total_token_count
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")

@@ -103,3 +103,59 @@ class ExtractionProvider(Protocol):
         Evaluate a claim and output a decision via LLM.
         """
         ...
+
+
+def calculate_cost(model_name: str, input_tokens: int, output_tokens: int) -> dict:
+    """Calculate input, output, and total cost in USD for a given model and token count."""
+    model_lower = model_name.lower()
+    
+    # Defaults (in case model is not found)
+    input_rate = 0.0
+    output_rate = 0.0
+    
+    # Define pricing per 1 million tokens (in USD)
+    if "llama-3.3-70b" in model_lower:
+        input_rate = 0.59
+        output_rate = 0.79
+    elif "llama-3.1-70b" in model_lower:
+        input_rate = 0.59
+        output_rate = 0.79
+    elif "llama-3" in model_lower:  # general fallback for other llama3 models
+        input_rate = 0.20
+        output_rate = 0.60
+    elif "gemini-2.5-flash" in model_lower:
+        input_rate = 0.075
+        output_rate = 0.30
+    elif "gemini-2.0-flash" in model_lower:
+        input_rate = 0.075
+        output_rate = 0.30
+    elif "gemini-1.5-flash" in model_lower:
+        input_rate = 0.075
+        output_rate = 0.30
+    elif "gemini-1.5-pro" in model_lower:
+        input_rate = 1.25
+        output_rate = 5.00
+    elif "gpt-4o" in model_lower:
+        input_rate = 2.50
+        output_rate = 10.00
+    elif "gpt-4-turbo" in model_lower:
+        input_rate = 10.00
+        output_rate = 30.00
+    elif "claude-3-5-sonnet" in model_lower:
+        input_rate = 3.00
+        output_rate = 15.00
+    else:
+        # Default fallback (e.g. general cheap model)
+        input_rate = 0.15
+        output_rate = 0.60
+
+    input_cost = (input_tokens / 1_000_000.0) * input_rate
+    output_cost = (output_tokens / 1_000_000.0) * output_rate
+    total_cost = input_cost + output_cost
+    
+    return {
+        "input": round(input_cost, 7),
+        "output": round(output_cost, 7),
+        "total": round(total_cost, 7),
+        "currency": "USD"
+    }

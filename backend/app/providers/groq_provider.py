@@ -87,15 +87,21 @@ class GroqProvider(ExtractionProvider):
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage") and response.usage:
+                    in_t = response.usage.prompt_tokens
+                    out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage.total_tokens
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -159,15 +165,21 @@ class GroqProvider(ExtractionProvider):
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage") and response.usage:
+                    in_t = response.usage.prompt_tokens
+                    out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage.total_tokens
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -246,15 +258,21 @@ class GroqProvider(ExtractionProvider):
             try:
                 lf = get_client()
                 usage = None
+                costs = None
                 if hasattr(response, "usage") and response.usage:
+                    in_t = response.usage.prompt_tokens
+                    out_t = response.usage.completion_tokens
                     usage = {
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
+                        "input_tokens": in_t,
+                        "output_tokens": out_t,
                         "total_tokens": response.usage.total_tokens
                     }
+                    from app.providers.base import calculate_cost
+                    costs = calculate_cost(self._model_name, in_t, out_t)
                 lf.update_current_generation(
                     model=self._model_name,
-                    usage_details=usage
+                    usage_details=usage,
+                    cost_details=costs
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
