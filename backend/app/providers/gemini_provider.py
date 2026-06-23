@@ -53,6 +53,10 @@ CLASSIFICATION_SYSTEM_PROMPT = """You are a document classifier for Indian medic
 Classify the uploaded document into exactly one of these types:
 PRESCRIPTION, HOSPITAL_BILL, LAB_REPORT, PHARMACY_BILL, DENTAL_REPORT, DISCHARGE_SUMMARY, UNKNOWN
 
+Guidance:
+- If the document is an invoice, bill, or receipt listing financial charges/costs, classify it as HOSPITAL_BILL (even if it is from a dental clinic or dentist).
+- Only classify as DENTAL_REPORT if it is a clinical summary or case sheet without prices/charges.
+
 Respond with JSON: {"document_type": "<TYPE>", "confidence": <0.0-1.0>, "reason": "<brief reason>"}
 
 If you cannot determine the type or the document is too unclear to classify, use UNKNOWN with low confidence."""

@@ -64,7 +64,12 @@ class GroqProvider(ExtractionProvider):
 
         prompt = self._get_prompt_text(
             "classification_prompt",
-            "Classify this document as HOSPITAL_BILL, PRESCRIPTION, LAB_REPORT, PHARMACY_BILL, DISCHARGE_SUMMARY, DENTAL_REPORT, or UNKNOWN. Output JSON like {'document_type': '...', 'confidence': 0.95}",
+            (
+                "Classify this document as HOSPITAL_BILL, PRESCRIPTION, LAB_REPORT, PHARMACY_BILL, DISCHARGE_SUMMARY, DENTAL_REPORT, or UNKNOWN. "
+                "Guidance: If the document is an invoice, bill, or receipt listing financial charges/costs, classify it as HOSPITAL_BILL (even if from a dental clinic or dentist). "
+                "Only classify as DENTAL_REPORT if it is a clinical summary or case sheet without prices/charges. "
+                "Output JSON like {'document_type': '...', 'confidence': 0.95}"
+            ),
         )
         try:
             response = await self._client.chat.completions.create(

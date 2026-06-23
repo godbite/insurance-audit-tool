@@ -95,6 +95,18 @@ class DocumentClassifierAgent:
                 mime_type=mime_type,
             )
 
+            # Heuristic: Remap DENTAL_REPORT to HOSPITAL_BILL if the document contains financial details
+            if doc_type == "DENTAL_REPORT":
+                try:
+                    from app.providers.ocr import extract_text_from_document
+                    ocr_text = extract_text_from_document(document_bytes, mime_type).lower()
+                    financial_keywords = ["total", "bill", "invoice", "inr", "amount", "charge", "rs.", "rupees"]
+                    if any(kw in ocr_text for kw in financial_keywords):
+                        log.info("Heuristic: Remapping DENTAL_REPORT containing financial keywords to HOSPITAL_BILL")
+                        doc_type = "HOSPITAL_BILL"
+                except Exception as he:
+                    log.warning(f"Classification remapping heuristic failed: {he}")
+
             # Map to valid type
             if doc_type not in VALID_DOCUMENT_TYPES:
                 doc_type = "UNKNOWN"
