@@ -1,10 +1,24 @@
 import os
 import logging
 import boto3
+import re
+import unicodedata
 from botocore.config import Config
 from app.core.config import get_settings
 
 log = logging.getLogger(__name__)
+
+def sanitize_filename(filename: str) -> str:
+    """Normalize and sanitize filename to prevent InvalidKey S3 errors."""
+    # Normalize unicode to decompose accents and special characters (like narrow non-breaking spaces)
+    normalized = unicodedata.normalize('NFKD', filename)
+    # Convert to ASCII, ignoring characters that can't be converted
+    ascii_only = normalized.encode('ascii', 'ignore').decode('ascii')
+    # Replace non-alphanumeric (except dot, hyphen, underscore) with underscore
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', ascii_only)
+    # Collapse multiple consecutive underscores
+    sanitized = re.sub(r'_+', '_', sanitized)
+    return sanitized
 
 def get_s3_client():
     """Create and return a boto3 S3 client using application settings."""
@@ -43,7 +57,8 @@ def upload_file_to_s3(claim_id: str, file_id: str, filename: str, content: bytes
         return False
         
     settings = get_settings()
-    s3_key = f"claims/{claim_id}/{file_id}/{filename}"
+    safe_filename = sanitize_filename(filename)
+    s3_key = f"claims/{claim_id}/{file_id}/{safe_filename}"
     
     try:
         client.put_object(
@@ -65,7 +80,8 @@ def download_file_from_s3(claim_id: str, file_id: str, filename: str) -> bytes:
         return b""
         
     settings = get_settings()
-    s3_key = f"claims/{claim_id}/{file_id}/{filename}"
+    safe_filename = sanitize_filename(filename)
+    s3_key = f"claims/{claim_id}/{file_id}/{safe_filename}"
     
     try:
         response = client.get_object(
