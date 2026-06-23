@@ -110,6 +110,12 @@ function App() {
       if (claimRes.ok) {
         const data = await claimRes.json();
         setClaimDetails(data);
+
+        // If the claim is not in a terminal state, start live tracking via WebSocket
+        const terminalStates = ["COMPLETE", "FAILED", "VERIFICATION_FAILED"];
+        if (!terminalStates.includes(data.status)) {
+          startLiveTracking(claimId);
+        }
       }
       // 2. Get trace logs
       const traceRes = await fetch(`${BACKEND_URL}/claims/${claimId}/trace`);
@@ -131,7 +137,6 @@ function App() {
     });
     setWsStages(initialStages);
     setWsCompleteInfo(null);
-    setClaimDetails(null);
     setTraceDetails(null);
     setSelectedClaimId(claimId);
     setActiveTab("audit");
@@ -268,9 +273,6 @@ function App() {
         onClose={() => setShowModal(false)}
         onSubmitSuccess={(claimId) => {
           window.location.hash = `#/claims/${claimId}`;
-          setTimeout(() => {
-            startLiveTracking(claimId);
-          }, 0);
         }}
         backendUrl={BACKEND_URL}
       />

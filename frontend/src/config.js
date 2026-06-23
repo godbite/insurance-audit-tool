@@ -12,7 +12,11 @@ export const BACKEND_URL = envBackendUrl
 
 const getWsUrl = () => {
   if (envBackendUrl) {
-    return envBackendUrl.replace(/^http/, "ws").replace(/\/$/, "");
+    const cleanUrl = envBackendUrl.replace(/\/$/, "");
+    if (cleanUrl.startsWith("https:") || protocol === "https:") {
+      return cleanUrl.replace(/^https?:/, "wss:");
+    }
+    return cleanUrl.replace(/^http?:/, "ws:");
   }
   return `${wsProtocol}//${finalHostname}:8000`;
 };

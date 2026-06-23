@@ -13,10 +13,15 @@ def get_ocr():
     global _ocr_instance
     if _ocr_instance is None:
         try:
+            import os
+            # Disable oneDNN (MKL-DNN) to prevent NotImplementedError in static graph execution on CPU
+            os.environ["FLAGS_use_onednn"] = "0"
+            os.environ["FLAGS_use_mkldnn"] = "0"
+            
             from paddleocr import PaddleOCR
             # Suppress excessive logging from PaddleOCR
             logging.getLogger("ppocr").setLevel(logging.WARNING)
-            _ocr_instance = PaddleOCR(use_textline_orientation=True, lang='en')
+            _ocr_instance = PaddleOCR(use_textline_orientation=True, lang='en', enable_mkldnn=False)
             log.info("PaddleOCR successfully initialized.")
         except Exception as e:
             log.error(f"Failed to initialize PaddleOCR: {e}", exc_info=True)
