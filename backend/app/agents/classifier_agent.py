@@ -95,15 +95,30 @@ class DocumentClassifierAgent:
                 mime_type=mime_type,
             )
 
-            # Heuristic: Remap DENTAL_REPORT to HOSPITAL_BILL if the document contains financial details
-            if doc_type == "DENTAL_REPORT":
+            # Heuristic: Remap reports/unknowns to bills if they contain clear financial transactions
+            if doc_type in ("DENTAL_REPORT", "DISCHARGE_SUMMARY", "UNKNOWN"):
                 try:
                     from app.providers.ocr import extract_text_from_document
                     ocr_text = extract_text_from_document(document_bytes, mime_type).lower()
-                    financial_keywords = ["total", "bill", "invoice", "inr", "amount", "charge", "rs.", "rupees"]
-                    if any(kw in ocr_text for kw in financial_keywords):
-                        log.info("Heuristic: Remapping DENTAL_REPORT containing financial keywords to HOSPITAL_BILL")
-                        doc_type = "HOSPITAL_BILL"
+                    
+                    # Transactional indicators
+                    invoice_indicators = ["total", "amount", "inr", "rs.", "rupees", "subtotal", "grand total", "amount due", "net payable"]
+                    bill_indicators = ["bill", "invoice", "receipt", "charge", "payment", "paid"]
+                    
+                    has_invoice = any(ind in ocr_text for ind in invoice_indicators)
+                    has_bill_term = any(ind in ocr_text for ind in bill_indicators)
+                    
+                    if has_invoice and has_bill_term:
+                        # Check if it is a pharmacy bill
+                        pharmacy_indicators = ["pharmacy", "chemist", "drug", "chemist shop", "dispensed"]
+                        if any(p in ocr_text for p in pharmacy_indicators) and doc_type != "DENTAL_REPORT":
+                            log.info(f"Heuristic: Remapping {doc_type} containing pharmacy/financial keywords to PHARMACY_BILL")
+                            doc_type = "PHARMACY_BILL"
+                            confidence = max(confidence, 0.85)
+                        else:
+                            log.info(f"Heuristic: Remapping {doc_type} containing financial keywords to HOSPITAL_BILL")
+                            doc_type = "HOSPITAL_BILL"
+                            confidence = max(confidence, 0.85)
                 except Exception as he:
                     log.warning(f"Classification remapping heuristic failed: {he}")
 
