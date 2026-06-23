@@ -78,13 +78,66 @@ source .venv/bin/activate
 pip install -r requirements.txt  # or install via pyproject.toml
 ```
 
-Configure your environment settings in a `.env` file (see `.env.example` if available):
+Configure your environment settings in a `.env` file:
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/plum
-REDIS_URL=redis://127.0.0.1:6379/0
-GROQ_API_KEY=your-groq-api-key
-PROVIDER_ORDER=groq  # Ensures Groq is prioritized
+# ─── Application ───────────────────────────────────────────────────────────────
+APP_ENV=development
+SECRET_KEY=change-me-in-production-use-a-long-random-string
+
+# ─── Database ──────────────────────────────────────────────────────────────────
+# Supabase Postgres database connection
+DATABASE_URL=postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres
+
+# ─── Redis (broker + result backend + pub/sub) ─────────────────────────────────
+# Upstash Redis URLs (requires ssl_cert_reqs configured as none/CERT_NONE for TLS)
+REDIS_URL=rediss://default:[TOKEN]@[HOST]:6379?ssl_cert_reqs=none
+CELERY_BROKER_URL=rediss://default:[TOKEN]@[HOST]:6379?ssl_cert_reqs=CERT_NONE
+CELERY_RESULT_BACKEND=rediss://default:[TOKEN]@[HOST]:6379?ssl_cert_reqs=CERT_NONE
+
+# ─── LLM Providers ─────────────────────────────────────────────────────────────
+# Comma-separated ordered list. First = primary, rest = fallbacks.
+PROVIDER_ORDER=groq
+
+# OpenRouter Configuration
+OPENROUTER_API_KEY=sk-or-v1-*****************************************************
+OPENROUTER_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free
+PROVIDER_TIMEOUT_S=45
+
+# Groq Configuration
+GROQ_API_KEY=gsk_**************************************************************
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# Gemini Configuration
+GEMINI_API_KEY=AQ.************************************************************
+GEMINI_MODEL=gemini-2.5-flash
+
+# OpenAI (optional fallback)
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o
+
+# ─── Langfuse (observability) ──────────────────────────────────────────────────
+LANGFUSE_PUBLIC_KEY=pk-lf-************************************
+LANGFUSE_SECRET_KEY=sk-lf-************************************
+LANGFUSE_HOST=https://us.cloud.langfuse.com
+
+# ─── MinIO / S3 Object Storage (Supabase S3 Bucket integration) ────────────────
+MINIO_ENDPOINT=https://[PROJECT-ID].storage.supabase.co/storage/v1/s3
+MINIO_ACCESS_KEY=********************************
+MINIO_SECRET_KEY=****************************************************************
+MINIO_BUCKET=plum-claims-docs
+MINIO_SECURE=true
+
+# ─── Policy ────────────────────────────────────────────────────────────────────
+POLICY_FILE_PATH=./policy_terms.json
+
+# ─── Feature Flags ─────────────────────────────────────────────────────────────
+# Set to "true" to enable the fault-injection path (TC011 testing)
+SIMULATE_COMPONENT_FAILURE=false
+
+# Document quality confidence threshold below which DOCUMENT_UNREADABLE is triggered
+DOC_QUALITY_THRESHOLD=0.4
 ```
+
 
 Apply database migrations:
 ```bash
