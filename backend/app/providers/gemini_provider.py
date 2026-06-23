@@ -59,6 +59,7 @@ If you cannot determine the type or the document is too unclear to classify, use
 
 
 from langfuse import observe, Langfuse
+from langfuse.decorators import langfuse_context
 
 class GeminiProvider:
     """
@@ -142,6 +143,22 @@ class GeminiProvider:
             raw_text = response.text.strip()
             latency_ms = int(time.time() * 1000) - start_ms
 
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    usage = {
+                        "input": response.usage_metadata.prompt_token_count,
+                        "output": response.usage_metadata.candidates_token_count,
+                        "total": response.usage_metadata.total_token_count
+                    }
+                langfuse_context.update_current_observation(
+                    model=self._model_name,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
+
             # Parse JSON → validate against Pydantic schema
             try:
                 data = json.loads(raw_text)
@@ -180,6 +197,7 @@ class GeminiProvider:
                 error=str(e),
             )
 
+    @observe(as_type="generation")
     async def classify(
         self,
         *,
@@ -212,6 +230,23 @@ class GeminiProvider:
                     temperature=0.0,
                 ),
             )
+
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    usage = {
+                        "input": response.usage_metadata.prompt_token_count,
+                        "output": response.usage_metadata.candidates_token_count,
+                        "total": response.usage_metadata.total_token_count
+                    }
+                langfuse_context.update_current_observation(
+                    model=self._model_name,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
+
             data = json.loads(response.text.strip())
             return data.get("document_type", "UNKNOWN"), float(data.get("confidence", 0.5))
         except Exception as e:

@@ -7,6 +7,7 @@ from typing import Tuple, Optional
 
 from openai import AsyncOpenAI
 from langfuse import observe
+from langfuse.decorators import langfuse_context
 
 from app.providers.base import ExtractionProvider, ProviderResult
 from app.core.config import get_settings
@@ -82,6 +83,22 @@ class OpenRouterProvider(ExtractionProvider):
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.choices[0].message.content or ""
             
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage") and response.usage:
+                    usage = {
+                        "input": response.usage.prompt_tokens,
+                        "output": response.usage.completion_tokens,
+                        "total": response.usage.total_tokens
+                    }
+                langfuse_context.update_current_observation(
+                    model=self.model,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warn("Failed to update Langfuse generation trace", error=str(le))
+            
             try:
                 data = json.loads(raw_text)
                 doc_type = data.get("document_type", "UNKNOWN")
@@ -144,6 +161,22 @@ class OpenRouterProvider(ExtractionProvider):
             
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.choices[0].message.content or ""
+            
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage") and response.usage:
+                    usage = {
+                        "input": response.usage.prompt_tokens,
+                        "output": response.usage.completion_tokens,
+                        "total": response.usage.total_tokens
+                    }
+                langfuse_context.update_current_observation(
+                    model=self.model,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warn("Failed to update Langfuse generation trace", error=str(le))
             
             try:
                 parsed = schema.model_validate_json(raw_text)

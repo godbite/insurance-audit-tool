@@ -16,6 +16,7 @@ from app.models.decision import LLMDecisionExtract
 
 import groq
 from langfuse import Langfuse, observe
+from langfuse.decorators import langfuse_context
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class GroqProvider(ExtractionProvider):
     def name(self) -> str:
         return "groq"
 
+    @observe(as_type="generation")
     async def classify(
         self,
         document_bytes: bytes,
@@ -76,6 +78,23 @@ class GroqProvider(ExtractionProvider):
             )
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.choices[0].message.content or ""
+
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage") and response.usage:
+                    usage = {
+                        "input": response.usage.prompt_tokens,
+                        "output": response.usage.completion_tokens,
+                        "total": response.usage.total_tokens
+                    }
+                langfuse_context.update_current_observation(
+                    model=self._model_name,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
+
             data = json.loads(raw_text)
             doc_type = data.get("document_type", "UNKNOWN")
             confidence = float(data.get("confidence", 0.95))
@@ -85,6 +104,7 @@ class GroqProvider(ExtractionProvider):
             log.error("Groq classification failed", extra={"error": str(e)}, exc_info=True)
             return "UNKNOWN", 0.0
 
+    @observe(as_type="generation")
     async def extract(
         self,
         *,
@@ -129,6 +149,22 @@ class GroqProvider(ExtractionProvider):
             )
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.choices[0].message.content or ""
+
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage") and response.usage:
+                    usage = {
+                        "input": response.usage.prompt_tokens,
+                        "output": response.usage.completion_tokens,
+                        "total": response.usage.total_tokens
+                    }
+                langfuse_context.update_current_observation(
+                    model=self._model_name,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
             
             try:
                 parsed = schema.model_validate_json(raw_text)
@@ -200,6 +236,22 @@ class GroqProvider(ExtractionProvider):
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.choices[0].message.content or ""
             
+            # Log model and token usage to Langfuse
+            try:
+                usage = None
+                if hasattr(response, "usage") and response.usage:
+                    usage = {
+                        "input": response.usage.prompt_tokens,
+                        "output": response.usage.completion_tokens,
+                        "total": response.usage.total_tokens
+                    }
+                langfuse_context.update_current_observation(
+                    model=self._model_name,
+                    usage=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
+
             # Explicitly log so we know it came from the LLM!
             log.info(f"🧠 LLM Engine ({self.name}) successfully generated a decision in {latency_ms}ms!")
             
