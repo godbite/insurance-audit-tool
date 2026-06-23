@@ -6,8 +6,7 @@ from pydantic import BaseModel
 from typing import Tuple, Optional
 
 from openai import AsyncOpenAI
-from langfuse import observe
-from langfuse.decorators import langfuse_context
+from langfuse import observe, get_client
 
 from app.providers.base import ExtractionProvider, ProviderResult
 from app.core.config import get_settings
@@ -85,16 +84,17 @@ class OpenRouterProvider(ExtractionProvider):
             
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage") and response.usage:
                     usage = {
-                        "input": response.usage.prompt_tokens,
-                        "output": response.usage.completion_tokens,
-                        "total": response.usage.total_tokens
+                        "input_tokens": response.usage.prompt_tokens,
+                        "output_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self.model,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warn("Failed to update Langfuse generation trace", error=str(le))
@@ -164,16 +164,17 @@ class OpenRouterProvider(ExtractionProvider):
             
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage") and response.usage:
                     usage = {
-                        "input": response.usage.prompt_tokens,
-                        "output": response.usage.completion_tokens,
-                        "total": response.usage.total_tokens
+                        "input_tokens": response.usage.prompt_tokens,
+                        "output_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self.model,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warn("Failed to update Langfuse generation trace", error=str(le))

@@ -58,8 +58,7 @@ Respond with JSON: {"document_type": "<TYPE>", "confidence": <0.0-1.0>, "reason"
 If you cannot determine the type or the document is too unclear to classify, use UNKNOWN with low confidence."""
 
 
-from langfuse import observe, Langfuse
-from langfuse.decorators import langfuse_context
+from langfuse import observe, Langfuse, get_client
 
 class GeminiProvider:
     """
@@ -145,16 +144,17 @@ class GeminiProvider:
 
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
                     usage = {
-                        "input": response.usage_metadata.prompt_token_count,
-                        "output": response.usage_metadata.candidates_token_count,
-                        "total": response.usage_metadata.total_token_count
+                        "input_tokens": response.usage_metadata.prompt_token_count,
+                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "total_tokens": response.usage_metadata.total_token_count
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self._model_name,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -233,16 +233,17 @@ class GeminiProvider:
 
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
                     usage = {
-                        "input": response.usage_metadata.prompt_token_count,
-                        "output": response.usage_metadata.candidates_token_count,
-                        "total": response.usage_metadata.total_token_count
+                        "input_tokens": response.usage_metadata.prompt_token_count,
+                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "total_tokens": response.usage_metadata.total_token_count
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self._model_name,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -282,6 +283,23 @@ class GeminiProvider:
             
             latency_ms = int(time.time() * 1000) - start_ms
             raw_text = response.text.strip()
+
+            # Log model and token usage to Langfuse
+            try:
+                lf = get_client()
+                usage = None
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    usage = {
+                        "input_tokens": response.usage_metadata.prompt_token_count,
+                        "output_tokens": response.usage_metadata.candidates_token_count,
+                        "total_tokens": response.usage_metadata.total_token_count
+                    }
+                lf.update_current_generation(
+                    model=self._model_name,
+                    usage_details=usage
+                )
+            except Exception as le:
+                log.warning(f"Failed to update Langfuse generation trace: {le}")
             
             try:
                 parsed = LLMDecisionExtract.model_validate_json(raw_text)

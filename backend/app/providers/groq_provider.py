@@ -15,8 +15,7 @@ from app.providers.base import ExtractionProvider, ProviderResult
 from app.models.decision import LLMDecisionExtract
 
 import groq
-from langfuse import Langfuse, observe
-from langfuse.decorators import langfuse_context
+from langfuse import Langfuse, observe, get_client
 
 log = logging.getLogger(__name__)
 
@@ -81,16 +80,17 @@ class GroqProvider(ExtractionProvider):
 
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage") and response.usage:
                     usage = {
-                        "input": response.usage.prompt_tokens,
-                        "output": response.usage.completion_tokens,
-                        "total": response.usage.total_tokens
+                        "input_tokens": response.usage.prompt_tokens,
+                        "output_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self._model_name,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -152,16 +152,17 @@ class GroqProvider(ExtractionProvider):
 
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage") and response.usage:
                     usage = {
-                        "input": response.usage.prompt_tokens,
-                        "output": response.usage.completion_tokens,
-                        "total": response.usage.total_tokens
+                        "input_tokens": response.usage.prompt_tokens,
+                        "output_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self._model_name,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
@@ -238,16 +239,17 @@ class GroqProvider(ExtractionProvider):
             
             # Log model and token usage to Langfuse
             try:
+                lf = get_client()
                 usage = None
                 if hasattr(response, "usage") and response.usage:
                     usage = {
-                        "input": response.usage.prompt_tokens,
-                        "output": response.usage.completion_tokens,
-                        "total": response.usage.total_tokens
+                        "input_tokens": response.usage.prompt_tokens,
+                        "output_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
                     }
-                langfuse_context.update_current_observation(
+                lf.update_current_generation(
                     model=self._model_name,
-                    usage=usage
+                    usage_details=usage
                 )
             except Exception as le:
                 log.warning(f"Failed to update Langfuse generation trace: {le}")
