@@ -127,6 +127,17 @@ async def _run_pipeline_async(claim_id: str, claim_data: dict) -> dict:
             if "storage_path" in doc and os.path.exists(doc["storage_path"]):
                 with open(doc["storage_path"], "rb") as f:
                     doc_bytes = f.read()
+            else:
+                log.info(f"Local file not found for {doc.get('file_name', doc.get('file_id'))}. Attempting S3 download.")
+                try:
+                    from app.core.storage import download_file_from_s3
+                    doc_bytes = download_file_from_s3(
+                        claim_id=claim_id,
+                        file_id=doc["file_id"],
+                        filename=doc.get("file_name", doc["file_id"])
+                    )
+                except Exception as s3_err:
+                    log.error(f"S3 fallback download failed: {s3_err}", exc_info=True)
                     
             classify_tasks.append(
                 classifier.classify_document(
@@ -218,6 +229,19 @@ async def _run_pipeline_async(claim_id: str, claim_data: dict) -> dict:
             if "storage_path" in doc and os.path.exists(doc["storage_path"]):
                 with open(doc["storage_path"], "rb") as f:
                     document_bytes_map[doc["file_id"]] = f.read()
+            else:
+                log.info(f"Local file not found for {doc.get('file_name', doc.get('file_id'))}. Attempting S3 download.")
+                try:
+                    from app.core.storage import download_file_from_s3
+                    doc_bytes = download_file_from_s3(
+                        claim_id=claim_id,
+                        file_id=doc["file_id"],
+                        filename=doc.get("file_name", doc["file_id"])
+                    )
+                    if doc_bytes:
+                        document_bytes_map[doc["file_id"]] = doc_bytes
+                except Exception as s3_err:
+                    log.error(f"S3 fallback download failed: {s3_err}", exc_info=True)
 
         extraction_results = await extractor.extract_all(
             classified_docs=classified_docs,

@@ -25,8 +25,10 @@ from sqlalchemy.orm import selectinload
 from app.core.config import Settings, get_settings
 from app.db.models import ClaimModel, ClaimTraceModel, DecisionModel, DocumentModel
 from app.db.session import get_db
+import logging
 from app.tasks.pipeline import run_claim_pipeline
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/claims", tags=["claims"])
 
 
@@ -101,6 +103,18 @@ async def submit_claim(
         
         with open(storage_path, "wb") as out_f:
             out_f.write(contents)
+
+        # Upload file to S3/MinIO for the celery worker to access in production
+        try:
+            from app.core.storage import upload_file_to_s3
+            upload_file_to_s3(
+                claim_id=claim_id,
+                file_id=file_id,
+                filename=f.filename or file_id,
+                content=contents
+            )
+        except Exception as e:
+            log.warning(f"S3 upload failed for file {file_id}: {e}")
 
         doc = DocumentModel(
             claim_id=claim_id,
